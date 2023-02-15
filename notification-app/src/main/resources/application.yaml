@@ -1,11 +1,32 @@
+logging:
+  level:
+    '*': TRACE
 server:
   port: 8080
 spring:
   application:
     name: app
+  datasource:
+    username: ${DATASOURCE_USERNAME:notification}
+    password: ${DATASOURCE_PASSWORD:root}
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+---
 logging:
   level:
     '*': DEBUG
+spring:
+  config:
+    activate:
+      on-profile: development
+  datasource:
+    url: ${DATASOURCE_URL}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
 ---
 logging:
   level:
@@ -16,3 +37,10 @@ spring:
   config:
     activate:
       on-profile: production
+  datasource:
+    url: ${DATASOURCE_URL}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
