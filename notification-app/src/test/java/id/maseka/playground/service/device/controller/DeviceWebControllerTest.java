@@ -1,19 +1,18 @@
 package id.maseka.playground.service.device.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import id.maseka.playground.service.common.BaseControllerTest;
 import id.maseka.playground.service.device.domain.Device;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.restdocs.payload.JsonFieldType;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.time.ZonedDateTime;
 import java.util.*;
 
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.restdocs.snippet.Attributes.attributes;
 import static org.springframework.restdocs.snippet.Attributes.key;
@@ -157,6 +156,87 @@ class DeviceWebControllerTest extends BaseControllerTest {
                         jsonPath("$.parameter").isMap(),
                         jsonPath("$.parameter.externalUserId").value("external user id cannot be blank")
                 );
+    }
+
+    @Test
+    void given_notFoundId_when_getDeviceById_then_returnError() throws Exception {
+        // given
+        // when
+        mockMvc.perform(get("/v1/device/da49b6d647f").contentType(MediaType.APPLICATION_JSON))
+                //then
+                .andExpectAll(
+                        status().isNotFound(),
+                        content().contentType(MediaType.APPLICATION_PROBLEM_JSON),
+                        jsonPath("$.type").value("/errors/not-found-error"),
+                        jsonPath("$.title").value("resource is not found"),
+                        jsonPath("$.detail").value("resource da49b6d647f of Device is not found"),
+                        jsonPath("$.instance").value("/v1/device/da49b6d647f"),
+                        jsonPath("$.entity").isMap(),
+                        jsonPath("$.entity.Device").value("da49b6d647f")
+                );
+    }
+
+    @Test
+    void given_createdDeviceWithDeviceTypeAndIdentifier_when_getDeviceById_then_returnDeviceWithDeviceTypeAndIdentifierAndLastActive() throws Exception {
+        // given
+        var request = new HashMap<String, Object>();
+        request.put("deviceType", 1);
+        request.put("identifier", "7a7e6e6b7c7");
+        var id = mockMvc.perform(post("/v1/device").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(request)))
+                .andReturn().getResponse().getContentAsString();
+
+        // when
+        mockMvc.perform(get("/v1/device/" + id))
+            // then
+                .andExpectAll(
+                        status().isOk(),
+                        jsonPath("$.id").exists(),
+                        jsonPath("$.deviceType").value("ANDROID"),
+                        jsonPath("$.identifier").value("7a7e6e6b7c7"),
+                        jsonPath("$.externalUserId").doesNotExist(),
+                        jsonPath("$.lastActive").exists())
+                .andDo(
+                        document("device-get",
+                                responseFields(attributes(key("title").value("Get a device response")),
+                                        fieldWithPath("id").description("data identifier"),
+                                        fieldWithPath("deviceType").description("device's platform"),
+                                        fieldWithPath("identifier").description("device's token"),
+                                        fieldWithPath("externalUserId").description("device's external user id"),
+                                        fieldWithPath("lastActive").description("device's last active with ISO 8601").type(ZonedDateTime.class)
+                                )
+                        ));
+    }
+
+    @Test
+    void given_createdDeviceWithDeviceTypeAndIdentifierAndExternalUserId_when_getDeviceById_then_returnDeviceWithDeviceTypeAndIdentifierAndExternalUserIdAndLastActive() throws Exception {
+        // given
+        var request = new HashMap<String, Object>();
+        request.put("deviceType", 1);
+        request.put("identifier", "7a7e6e6b7c7");
+        request.put("externalUserId", "857474");
+        var id = mockMvc.perform(post("/v1/device").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(request)))
+                .andReturn().getResponse().getContentAsString();
+
+        // when
+        mockMvc.perform(get("/v1/device/" + id))
+                // then
+                .andExpectAll(
+                        status().isOk(),
+                        jsonPath("$.id").exists(),
+                        jsonPath("$.deviceType").value("ANDROID"),
+                        jsonPath("$.identifier").value("7a7e6e6b7c7"),
+                        jsonPath("$.externalUserId").value("857474"),
+                        jsonPath("$.lastActive").exists())
+                .andDo(
+                        document("device-get",
+                                responseFields(attributes(key("title").value("Get a device response")),
+                                        fieldWithPath("id").description("data identifier"),
+                                        fieldWithPath("deviceType").description("device's platform"),
+                                        fieldWithPath("identifier").description("device's token"),
+                                        fieldWithPath("externalUserId").description("device's external user id"),
+                                        fieldWithPath("lastActive").description("device's last active with ISO 8601").type(ZonedDateTime.class)
+                                )
+                        ));
     }
 
     @Override

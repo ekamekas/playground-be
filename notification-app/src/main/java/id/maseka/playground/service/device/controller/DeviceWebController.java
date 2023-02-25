@@ -1,13 +1,11 @@
 package id.maseka.playground.service.device.controller;
 
 import id.maseka.playground.service.device.service.DeviceService;
+import id.maseka.playground.service.device.service.dto.DeviceGetResponseDTO;
 import id.maseka.playground.service.device.service.dto.DeviceUpdateOrCreateRequestDTO;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 
@@ -28,6 +26,14 @@ public class DeviceWebController {
         return ResponseEntity
                 .created(URI.create("v1/device/" + result))
                 .body(result);
+    }
+
+    @GetMapping("{id}")
+    ResponseEntity<DeviceGetResponseDTO> get(@PathVariable(name = "id") String id) {
+        var result = service.get(id);
+
+        return ResponseEntity
+                .ok(result);
     }
 
 }

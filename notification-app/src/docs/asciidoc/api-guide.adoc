@@ -105,3 +105,15 @@ include::{snippets}/device-create/request-fields.adoc[]
 === Response
 
 include::{snippets}/device-create/http-response.adoc[]
+
+=== Get a device
+
+One showing how to make a request using cURL:
+
+include::{snippets}/device-get/curl-request.adoc[]
+
+=== Response
+
+include::{snippets}/device-get/response-fields.adoc[]
+
+include::{snippets}/device-get/http-response.adoc[]
